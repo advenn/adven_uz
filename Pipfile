@@ -1,0 +1,20 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+django = "*"
+pillow = "*"
+requests = "*"
+youtube-dl = "*"
+yt-dlp = "*"
+numpy = "*"
+pandas = "*"
+pyacrcloud = "*"
+tiktokapi = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.8"

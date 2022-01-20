@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+
+{
+{% block error %}
+    {% include 'form.html' %}
+
+    <h3><b>This <a href="{{ url }}">url</a> platform is not supported!</b></h3><h4><br>Try another link</h4>
+{% endblock %}
