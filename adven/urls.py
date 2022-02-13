@@ -13,17 +13,28 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 
-from ttsongrec.forms import LinkForm
-from ttsongrec.views import homepage, recognizer, get_link
+from ttsongrec.views import homepage, get_link, test, download_file, download_music
+from django.views.generic.base import RedirectView
 
+favicon_view = RedirectView.as_view(url='/static/favicon.ico', permanent=True)
 urlpatterns = [
     path('', homepage, name='main'),
     path('admin/', admin.site.urls),
     path('recognizer/', include('ttsongrec.urls')),
     path('r/', include('ttsongrec.urls')),
-    path('link/', get_link, name='form')
-
+    path('link/', get_link, name='form'),
+    path('test/', test, name='test'),
+    path('download/<str:filepath>', download_file, name='download'),
+    path('download_music/<music>', download_music, name='download_music'),
+    re_path(r'^favicon\.ico$', favicon_view),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+handler404 = 'ttsongrec.views.page404'

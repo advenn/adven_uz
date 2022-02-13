@@ -2,6 +2,9 @@ from django.db import models
 
 
 # Create your models here.
+from django.urls import reverse
+
+
 class URL(models.Model):
     url = models.URLField(verbose_name='Link to track', max_length=500)
     platform_long = models.CharField(max_length=10, verbose_name='Long name of platform')
@@ -16,14 +19,17 @@ class Video(models.Model):
     description = models.TextField(blank=True, null=True)
     video_id = models.CharField(max_length=30, null=True, blank=True)
     url = models.ForeignKey(to=URL, on_delete=models.PROTECT)
-    thumb = models.ImageField(upload_to='media/images/', null=True, blank=True)
-    video = models.FileField(blank=True, null=True)
+    thumb = models.ImageField(upload_to='static/images/', null=True, blank=True)
+    video = models.FileField(blank=True, null=True, upload_to='static/video')
     date = models.DateTimeField(auto_now_add=True)
     filesize = models.FloatField(blank=True, null=True, verbose_name='Filesize')
     # length = models.FloatField(blank=True, null=True, verbose_name='Length of video')
 
     def __str__(self):
         return self.title
+
+    # def get_absolute_url(self):
+    #     return reverse('video/'+self.video_id)
 
 
 class Recognized(models.Model):
@@ -46,4 +52,8 @@ class Music(models.Model):
 
     def __str__(self):
         return self.name
+
+    # class Meta:
+    #     model_name = "Music"
+
 

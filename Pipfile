@@ -13,6 +13,7 @@ numpy = "*"
 pandas = "*"
 pyacrcloud = "*"
 tiktokapi = "*"
+py-deezer = "*"
 
 [dev-packages]
 

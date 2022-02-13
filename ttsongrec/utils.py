@@ -1,29 +1,34 @@
 import os
+import subprocess
 from urllib.parse import urlparse
 
+import numpy as np
+import pandas as pd
 import requests
 import youtube_dl
 import yt_dlp
-from TikTokApi import TikTokApi
+# from TikTokApi import TikTokApi
 from acrcloud.recognizer import ACRCloudRecognizer
-from pytube import YouTube
+from pydeezer import Deezer
+from pydeezer.constants import track_formats
+from data.config import ACR_HOST, ACR_ACCESS_KEY, ACR_SECRET_KEY, arl
 
-from data.config import ACR_HOST, ACR_ACCESS_KEY, ACR_SECRET_KEY
+# token = 'verify_88d95f5b1f7ba9fc513a6ae01b6db146'
+# api = TikTokApi.get_instance(custom_verifyFp=token,
+# use_selenium=False,
+# executablePath=os.path.join(os.getcwd(), 'chromedriver', 'chromedriver')
+# )
 
-token = 'verify_88d95f5b1f7ba9fc513a6ae01b6db146'
-api = TikTokApi.get_instance(custom_verifyFp=token,
-                             # use_selenium=False,
-                             # executablePath=os.path.join(os.getcwd(), 'chromedriver', 'chromedriver')
-                             )
-
-SPOTIFY_TRACK_LINK = 'https://open.spotify.com/artist/'
+deezer = Deezer(arl=arl)
+SPOTIFY_TRACK_LINK = 'https://open.spotify.com/track/'
 YOUTUBE_LINK = 'https://youtu.be/'
 youtube_urls = ['www.youtube.com', 'youtube.com', 'm.youtube.com', 'youtu.be']
 tiktok_urls = ['tiktok.com', 'www.tiktok.com', 'm.tiktok.com', 'vm.tiktok.com', 'vt.tiktok.com']
-ydl = yt_dlp.YoutubeDL({'outtmpl': '%(id)s.%(ext)s', 'paths': {'home': os.path.join(os.getcwd(), 'media', 'video')}})
+ydl = yt_dlp.YoutubeDL({'outtmpl': '%(id)s.%(ext)s', 'paths': {'home': os.path.join(os.getcwd(), 'static', 'video')}})
 ytdl = youtube_dl.YoutubeDL(
-    {'outtmpl': '%(id)s.%(ext)s', 'paths': {'home': os.path.join(os.getcwd(), 'media', 'video')}})
-VIDEO_PATH = os.path.join(os.getcwd(), 'media', 'video')
+    {'outtmpl': '%(id)s.%(ext)s', 'paths': {'home': os.path.join(os.getcwd(), 'static', 'video')}})
+VIDEO_PATH = os.path.join(os.getcwd(), 'static', 'video')
+MUSIC_PATH = os.path.join(os.getcwd(), 'static','music')
 ACRCLOUD_ERROR_CODES = {'0': 'Recognition succeed', '1001': 'No recognition result',
                         '2000': 'Recording error (device may not have permission)',
                         '2001': 'Init failed or request timeout', '2002': 'Metadata parse error',
@@ -54,107 +59,113 @@ def extract_platform(url):
 
 def download_video_shorts(url):
     print('youtube initiated')
-    yt = YouTube(url)
-    # with ydl as downloader:
-    #     video = downloader.extract_info(
-    #         url=url,
-    #         download=True
-    #     )
-    # print(video)
-    video_id = yt.video_id
-    title = yt.title
-    thumb = yt.thumbnail_url
-    description = yt.description
-    details = {'video_id': video_id, 'thumb': thumb, 'title': title, 'description': description}
-    # try:
-    #     artist = video['artist']
-    #     details['artist'] = artist
-    # except KeyError:
-    #     pass
-    # try:
-    #     track = video['track']
-    #     details['track'] = track
-    # except KeyError:
-    #     pass
-    # try:
-    #     album = video['album']
-    #     details['album'] = album
-    # except KeyError:
-    #     pass
-    # try:
-    #     extension = video['ext']
-    #     filename = "{0}.{1}".format(video_id, extension)
-    #     details['extension'] = extension
-    #     details['filename'] = filename
-    # except KeyError:
-    #     files = pd.Series(np.array(os.listdir(VIDEO_PATH)))
-    #     filename = files[files.str.startswith(video_id)].values[0]
-    #     details['filename'] = filename
-    full_path = yt.streams.get_highest_resolution().download()
-    details['full_path'] = full_path
+    # yt = YouTube(url)
+    with ydl as downloader:
+        video = downloader.extract_info(
+            url=url,
+            download=True
+        )
+        # print(video)
+        details = {}
+        video_id = video['id']
+        title = video['title']
+        thumb = video['thumbnail']
+        description = video['description']
+        # video_id = yt.video_id
+        # title = yt.title
+        # thumb = yt.thumbnail_url
+        # description = yt.description
+        details = {'video_id': video_id, 'thumb': thumb, 'title': title, 'description': description}
+        try:
+            artist = video['artist']
+            details['artist'] = artist
+        except KeyError:
+            pass
+        try:
+            track = video['track']
+            details['track'] = track
+        except KeyError:
+            pass
+        try:
+            album = video['album']
+            details['album'] = album
+        except KeyError:
+            pass
+        # try:
+        #     extension = video['ext']
+        #     filename = "{0}.{1}".format(video_id, extension)
+        #     details['extension'] = extension
+        #     details['filename'] = filename
+        # except KeyError:
+        files = pd.Series(np.array(os.listdir(VIDEO_PATH)))
+        filename = files[files.str.startswith(video_id) & ~files.str.endswith('.mp3')].values[0]
+        # if str(filename).endswith('.mp3')
+        details['filename'] = filename
+        full_path = os.path.join(os.getcwd(), 'static', 'video', filename)
+        # yt.streams.get_highest_resolution().download()
+        details['full_path'] = full_path
     return details
 
 
 def download_video_tiktok(url):
     print('tiktok initiated')
-    video = api.get_tiktok_by_url(url)
-    video_details = video['itemInfo']['itemStruct']
-    video_id = video_details['id']
-    title = video['shareMeta']['title']
-    thumb = video_details['video']['originCover']
-    description = video['shareMeta']['desc']
-    extension = video_details['video']['format']
-    filename = "{}.{}".format(video_id, extension)
-    tiktok = api.get_video_by_tiktok(video)
-    full_path = os.path.join(VIDEO_PATH, filename)
-    with open(full_path, 'wb') as file:
-        file.write(tiktok)
-    details = {'video_id': video_id, 'thumb': thumb, 'title': title, 'description': description,
-               'full_path': full_path}
-    # with ydl as downloader:
-    #     video = downloader.extract_info(
-    #         url=url,
-    #         download=False
-    #     )
-    #     print(video)
-    #     details = {}
-    #     video_id = video['id']
-    #     title = video['title']
-    #     thumb = video['thumbnail']
-    #     description = video['description']
-    #     details['video_id'] = video_id
-    #     details['thumb'] = thumb
-    #     details['title'] = title
-    #     details['description'] = description
-    #     try:
-    #         artist = video['artist']
-    #         details['artist'] = artist
-    #     except KeyError:
-    #         pass
-    #     try:
-    #         track = video['track']
-    #         details['track'] = track
-    #     except KeyError:
-    #         pass
-    #     try:
-    #         album = video['album']
-    #         details['album'] = album
-    #     except KeyError:
-    #         pass
-    #     try:
-    #         extension = video['video_ext']
-    #         filename = "{0}.{1}".format(video_id, extension)
-    #         details['extension'] = extension
-    #         details['filename'] = filename
-    #     except KeyError:
-    #         files = pd.Series(np.array(os.listdir(VIDEO_PATH)))
-    #         filename = files[files.str.startswith(video_id)].values[0]
-    #         details['filename'] = filename
-    #     full_path = os.path.join(VIDEO_PATH, details['filename'])
-    #     details['full_path'] = full_path
-    #     return details
-    return details
-
+    # video = api.get_tiktok_by_url(url)
+    # video_details = video['itemInfo']['itemStruct']
+    # video_id = video_details['id']
+    # title = video['shareMeta']['title']
+    # thumb = video_details['video']['originCover']
+    # description = video['shareMeta']['desc']
+    # extension = video_details['video']['format']
+    # filename = "{}.{}".format(video_id, extension)
+    # tiktok = api.get_video_by_tiktok(video)
+    # full_path = os.path.join(VIDEO_PATH, filename)
+    # with open(full_path, 'wb') as file:
+    #     file.write(tiktok)
+    # details = {'video_id': video_id, 'thumb': thumb, 'title': title, 'description': description,
+    #            'full_path': full_path}
+    with ydl as downloader:
+        video = downloader.extract_info(
+            url=url,
+            download=False
+        )
+        # print(video)
+        details = {}
+        video_id = video['id']
+        title = video['title']
+        thumb = video['thumbnail']
+        description = video['description']
+        details['video_id'] = video_id
+        details['thumb'] = thumb
+        details['title'] = title
+        details['description'] = description
+        try:
+            artist = video['artist']
+            details['artist'] = artist
+        except KeyError:
+            pass
+        try:
+            track = video['track']
+            details['track'] = track
+        except KeyError:
+            pass
+        try:
+            album = video['album']
+            details['album'] = album
+        except KeyError:
+            pass
+        try:
+            extension = video['video_ext']
+            filename = "{0}.{1}".format(video_id, extension)
+            details['extension'] = extension
+            details['filename'] = filename
+        except KeyError:
+            files = pd.Series(np.array(os.listdir(VIDEO_PATH)))
+            filename = files[files.str.startswith(video_id)].values[0]
+            details['filename'] = filename
+        full_path = os.path.join(VIDEO_PATH, details['filename'])
+        details['full_path'] = full_path
+        return details
+    # return details
 
 
 acrconfig = {
@@ -214,27 +225,91 @@ def recognize(path):
             music_details['album'] = album
             music_details['artists'] = artists
             if i['external_metadata']:
-                if i['external_metadata']['spotify']:
+                try:
+                    # i['external_metadata']['spotify']:
                     music_details['spotify'] = i['external_metadata']['spotify']
+                    # music_details['spotify']['artists']['name']
+                    names = ", ".join([sh['name'] for sh in i['external_metadata']['spotify']['artists']])
+                    music_details['spotify']['artists'] = {'name': names}
+                    # for key, value in i['external_metadata']['spotify'].items():
+                    #     spotify={}
+                    #     spotify[key] = ", ".join([ for k in value.keys()])
                     spotify_link = SPOTIFY_TRACK_LINK + i['external_metadata']['spotify']['track']['id']
                     music_details['spotify_link'] = spotify_link
-                else:
-                    spotify_link = None
-                    music_details['spotify_link'] = spotify_link
-                if i['external_metadata']['youtube']:
+                except KeyError:
+                    pass
+                    # spotify_link = None
+                    # music_details['spotify_link'] = spotify_link
+                try:
+                    # i['external_metadata']['youtube'] :
                     music_details['youtube'] = i['external_metadata']['youtube']
                     youtube_link = YOUTUBE_LINK + i['external_metadata']['youtube']['vid']
                     music_details['youtube_link'] = youtube_link
-                else:
-                    youtube_link = None
-                    music_details['youtube_link'] = youtube_link
-            if i['title']:
+                except KeyError:
+                    pass
+                    # youtube_link = None
+                    # music_details['youtube_link'] = youtube_link
+            try:
+                # i['title']:
                 music_details['title'] = i['title']
-            else:
-                music_details['title'] = None
+            except KeyError:
+                pass
+                # music_details['title'] = None
             music_list.append(music_details)
         parsed['parsed'] = music_list
         parsed['msg'] = recognized['status']['msg']
     else:
         parsed['msg'] = recognized['status']['msg']
     return parsed
+
+
+def video_convertor(filename):
+    FNULL = open(os.devnull, 'w')
+    com = """ffmpeg -i {0} -codec copy -strict -2 {1}.mp4 -y""".format(filename, filename.split('.')[0]).split()
+    result = subprocess.call(com, stdout=FNULL,
+                             stderr=subprocess.STDOUT)
+    if int(result) == 0:
+        return filename.split('.')[0] + '.mp4'
+    else:
+        return filename
+
+
+def video2audio(filename):
+    FNULL = open(os.devnull, 'w')
+    com = """ffmpeg -i {0} {1}.mp3 -y""".format(filename, filename.split('.')[0]).split()
+    result = subprocess.call(com, stdout=FNULL,
+                             stderr=subprocess.STDOUT)
+    if int(result) == 0:
+        return filename.split('.')[0] + '.mp3'
+    else:
+        return filename
+
+
+def search_n_download_music(query):
+    # query = f"{details['title']['name']}  {details['artists']['name']}"
+    # results = deezer.search_tracks(query, limit=1)
+    track_search_results = deezer.search_tracks(query, limit=1)
+    if len(track_search_results) > 0:
+        track_id = track_search_results[0]['id']
+        track = deezer.get_track(track_id)
+        track_info = track['info']
+        lyrics = ''
+        try:
+            lyrics = track_info['LYRICS']['LYRICS_TEXT']
+        except Exception:
+            lyrics = ''
+        track_title = track_info['DATA']['SNG_TITLE']
+        track['download'](MUSIC_PATH, quality=track_formats.MP3_320)
+        filename = ''
+        # files = os.listdir('static/music')
+        # df = pd.Series(files)
+        files = pd.Series(np.array(os.listdir(MUSIC_PATH)))
+        filename = files[files.str.startswith(track_title) & files.str.endswith('.mp3')].values[0]
+        # filename = df.str
+        # for i in files:
+        #     if track_title in i and not i.endswith('.lrc'):
+        #         filename = i
+        return {'msg': 'success', 'lyrics': lyrics, 'track_title': track_title, 'filename': filename}
+    else:
+        return {'msg': 'fail'}
+    # return results

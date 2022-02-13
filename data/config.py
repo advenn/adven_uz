@@ -1,3 +1,6 @@
 ACR_HOST = "identify-eu-west-1.acrcloud.com"
 ACR_ACCESS_KEY = "9f736e21835e27d6991ac9ac30482ae4"
 ACR_SECRET_KEY = "0EXOFmb9mWaTcR6ukeGmPulKBnaISDl3ib3epGfZ"
+
+
+arl = '''399ea92ce84d9ac69aafbde0a7d9ba052b44035ba406de7eca1a8927ba3dde88b3c3f0354bfa98aecf2e8c8358765bc769c48f12d73002d88815f57cb351a0db9470ff50ce36c4ec5ed2d6e71d13fc34c38b2332280076dbb6b0dc62a69dccef'''
