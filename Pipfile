@@ -12,9 +12,9 @@ yt-dlp = "*"
 numpy = "*"
 pandas = "*"
 pyacrcloud = "*"
-tiktokapi = "*"
 py-deezer = "*"
 gunicorn = "*"
+celery = "*"
 
 [dev-packages]
 

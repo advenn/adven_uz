@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block video %}
+    <div class="row">
+        <div class="col">
+            <img src="{{ image }}" alt="{{ vidtitle }}" height="450">
+            <p>{{ vidtitle }}</p>
+        </div>
+        <div class="col">
+            <video height="450" autoplay="autoplay" controls style="">
+                <source src="{{ MEDIA_URL }}{{ file }}" type="{{ mime_type }}">
+                VIDEO
+            </video>
+            <br><a href=/download/{{ file }} >Download Video</a>
+        </div>
+        <br>
+    </div>
+    <p>
+    <ul>
+        {% if parsed %}
+            <h4><b>Results:</b></h4>
+            {% for i in parsed %}
+                {% for key, value in i.items %}
+                    {% if key == "spotify_link" %}
+                        <li><b> Spotify link:</b> <a href="{{ value }}" target="_blank">Spotify</a></li>
+                    {% elif key == "spotify" %}
+                        <li><b>Spotify:</b></li>
+                        <ul>
+                            {% for k,v in value.items %}
+                                <li>
+                                    <b>{{ k }}:</b> {{ v.name }}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% elif key == "youtube" %}
+                        ""
+                    {% elif key == "youtube_link" %}
+                        <li><b> YouTube link:</b> <a href="{{ value }}" target="_blank">Youtube</a></li>
+                    {% elif key == "pk" %}
+                        <a href="/download_music/{{ value }}"> Download Song </a>
+                    {% else %}
+                        <li><b> {{ key.capitalize }}:</b> {{ value }} </li>
+                    {% endif %}
+                {% endfor %}
+                <hr style="border-top: 3px solid #bbb;">
+            {% endfor %}
+
+        {% else %}
+            <b> We cannot recognize any song from url. You still download video and audio </b>
+            <br><audio controls>
+                <source src="{{ MEDIA_URL }}{{ afile }}" type="{{ amimetype }}">
+                Your browser does not support the audio element.
+            </audio>
+            <a href="/download/{{ afile }}" >Download Track</a>
+        {% endif %}
+    </ul>
+{% endblock video %}

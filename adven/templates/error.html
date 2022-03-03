@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+
+{% block error %}
+{#    {% include 'form.html' %}#}
+    <h3><b> Unsuccessful!</b></h3>
+    <b>{{ code }}:</b> <i>{{ err }}</i>
+    <br>Return to <a href="{% url "main" %}">Homepage</a>
+{% endblock %}
