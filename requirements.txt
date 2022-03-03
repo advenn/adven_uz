@@ -1,4 +1,4 @@
-django~=4.0.0
+django~=4.0.2
 uwsgi
 yt-dlp
 youtube-dl

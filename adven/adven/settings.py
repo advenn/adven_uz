@@ -24,9 +24,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-n4e9_+wf=q#9qyq*5xuu*-j$0czes34o+-e(4i24k#88q@lpnw'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['65.21.155.191']
 
 # Application definition
 
@@ -38,8 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'ttsongrec.apps.TtsongrecConfig',
-    'rest_framework',
-    'django_crontab',
+    # 'rest_framework',
+    # 'django_crontab',
 
 ]
 
